@@ -109,33 +109,52 @@ function setupEventListeners() {
         Export.downloadExcel('schedule-table');
     });
 
-    // Mobile Menu
-    document.getElementById('download-menu-btn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('download-menu').classList.toggle('hidden');
-    });
+    // Menú de Exportación (Dropdown)
+    const downloadMenuBtn = document.getElementById('download-menu-btn');
+    const downloadMenu = document.getElementById('download-menu');
 
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', () => {
-        document.getElementById('download-menu')?.classList.add('hidden');
-    });
+    if (downloadMenuBtn && downloadMenu) {
+        // Toggle menú al pulsar el botón
+        downloadMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            downloadMenu.classList.toggle('hidden');
+        });
 
-    // Mobile export menu links
-    document.getElementById('download-png-menu')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        UI.showToast("Generando Imagen, por favor espera...", "info", true);
-        Export.downloadSchedule('png', 'schedule-container');
-    });
-    document.getElementById('download-pdf-menu')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        UI.showToast("Generando PDF, por favor espera...", "info", true);
-        Export.downloadSchedule('pdf', 'schedule-container');
-    });
-    document.getElementById('download-excel-menu')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        UI.showToast("Generando Excel, por favor espera...", "info", true);
-        Export.downloadExcel('schedule-table');
-    });
+        // Evitar que el menú se cierre al hacer clic dentro de él (pero no en las opciones)
+        downloadMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Cerrar menú al hacer clic en cualquier otra parte del documento
+        document.addEventListener('click', () => {
+            downloadMenu.classList.add('hidden');
+        });
+
+        // Configurar acciones de cada opción del menú
+        const exportOptions = [
+            { id: 'download-png-menu', format: 'png', msg: 'Generando Imagen...' },
+            { id: 'download-pdf-menu', format: 'pdf', msg: 'Generando PDF...' },
+            { id: 'download-excel-menu', format: 'excel', msg: 'Generando Excel...' }
+        ];
+
+        exportOptions.forEach(opt => {
+            const el = document.getElementById(opt.id);
+            if (el) {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    downloadMenu.classList.add('hidden'); // Cerrar menú al elegir
+                    UI.showToast(opt.msg, "info", true);
+
+                    if (opt.format === 'excel') {
+                        Export.downloadExcel('schedule-table');
+                    } else {
+                        Export.downloadSchedule(opt.format, 'schedule-container');
+                    }
+                });
+            }
+        });
+    }
 
     // Trim/Recortar schedule
     document.getElementById('trim-schedule-btn')?.addEventListener('click', () => {

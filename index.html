@@ -41,9 +41,8 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
     <!-- Application Logic -->
-    <!-- Se añade v=1.1 para romper caché y asegurar que veas la última versión -->
-    <script type="module" src="data/courses.js?v=6"></script>
-    <script type="module" src="js/main.js?v=6"></script>
+    <!-- Se usa solo js/main.js que ya importa courses.js -->
+    <script type="module" src="js/main.js?v=7"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -340,7 +339,7 @@
             }
         }, true);
     </script>
-    <script type="module" src="js/main.js?v=4"></script>
+
 </body>
 
 </html>

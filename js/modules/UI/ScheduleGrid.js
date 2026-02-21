@@ -109,24 +109,24 @@ export const ScheduleGrid = {
                 const height = (mergedEnd - mergedStart) * pixelsPerMinute;
 
                 const blockEl = document.createElement('div');
-                blockEl.className = 'class-block absolute left-0.5 right-0.5 rounded-xl p-2 text-xs border-l-4 shadow-md hover:shadow-xl transition-all duration-200 z-20 cursor-pointer overflow-hidden';
+                blockEl.className = 'class-block absolute left-0.5 right-0.5 rounded-lg p-1.5 text-xs border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 z-20 cursor-pointer overflow-hidden';
                 blockEl.style.top = `${top}px`;
                 blockEl.style.height = `${height}px`;
                 blockEl.style.backgroundColor = color;
                 blockEl.style.borderColor = borderColor;
                 blockEl.style.color = textColor;
-                blockEl.style.minHeight = '40px';
+                blockEl.style.minHeight = '35px';
 
                 const durationMin = mergedEnd - mergedStart;
                 const aulaText = [...new Set(aulas)].join(', ');
                 const seccion_id = seccion.id;
 
                 blockEl.innerHTML = `
-                    <div class="flex flex-col h-full justify-center items-center text-center gap-0.5 overflow-hidden px-1">
-                        <strong class="font-bold leading-tight text-[10px] sm:text-[11px] block w-full" style="white-space: normal; word-break: break-word;">${curso.nombre}</strong>
-                        ${durationMin > 40 ? `<span class="text-[9px] sm:text-[10px] font-semibold opacity-90">${aulaText} - Sec. ${seccion_id}</span>` : ''}
-                        ${durationMin > 60 ? `<span class="text-[8px] sm:text-[9px] opacity-80 leading-tight">${seccion.docente}</span>` : ''}
-                        ${durationMin > 60 ? `<span class="text-[9px] sm:text-[10px] opacity-80">${clase.hora}</span>` : ''}
+                    <div class="flex flex-col h-full justify-center items-center text-center gap-0 overflow-hidden">
+                        <strong class="font-bold leading-[1.1] text-[9px] sm:text-[10px] block w-full" style="white-space: normal; word-break: break-all;">${curso.nombre}</strong>
+                        ${durationMin > 45 ? `<span class="text-[8.5px] sm:text-[9px] font-semibold opacity-90 leading-tight truncate w-full">${aulaText} • S. ${seccion_id}</span>` : ''}
+                        ${durationMin > 80 ? `<span class="text-[7.5px] sm:text-[8px] opacity-80 leading-[1.1] mt-0.5">${seccion.docente}</span>` : ''}
+                        ${durationMin > 100 ? `<span class="text-[8px] sm:text-[9px] opacity-80 mt-0.5">${clase.hora}</span>` : ''}
                     </div>
                 `;
 
