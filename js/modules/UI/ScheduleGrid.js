@@ -136,12 +136,15 @@ export const ScheduleGrid = {
                 const aulaText = [...new Set(aulas)].join(', ');
                 const seccion_id = seccion.id;
 
+                const formatTime = (mins) => `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+                const horaDisplay = `${formatTime(mergedStart)} a ${formatTime(mergedEnd)}`;
+
                 blockEl.innerHTML = `
                     <div class="flex flex-col h-full justify-center items-center text-center gap-0 overflow-hidden">
                         <strong class="font-bold leading-[1.1] text-[9px] sm:text-[10px] block w-full" style="white-space: normal; word-break: break-all;">${curso.nombre}</strong>
                         ${durationMin > 45 ? `<span class="text-[8.5px] sm:text-[9px] font-semibold opacity-90 leading-tight truncate w-full">${aulaText} • S. ${seccion_id}</span>` : ''}
                         ${durationMin > 80 ? `<span class="text-[7.5px] sm:text-[8px] opacity-80 leading-[1.1] mt-0.5">${seccion.docente}</span>` : ''}
-                        ${durationMin > 100 ? `<span class="text-[8px] sm:text-[9px] opacity-80 mt-0.5">${clase.hora}</span>` : ''}
+                        ${durationMin > 100 ? `<span class="text-[8px] sm:text-[9px] opacity-80 mt-0.5">${horaDisplay}</span>` : ''}
                     </div>
                 `;
 

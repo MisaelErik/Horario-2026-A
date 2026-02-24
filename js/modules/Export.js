@@ -3,7 +3,22 @@ import { TimeUtils } from './TimeUtils.js';
 import { UI } from './UI.js';
 
 export const Export = {
+    _isInAppBrowser() {
+        const rules = ['FBAV', 'FBAN', 'Instagram', 'WhatsApp', 'Snapchat', 'Line', 'Threads', 'LinkedInApp', 'TikTok', 'Twitter', 'WebView'];
+        return rules.some(rule => navigator.userAgent.includes(rule));
+    },
+
+    _handleBrowserSupport() {
+        if (this._isInAppBrowser()) {
+            UI.showToast("Las descargas no son compatibles en este navegador. Abre la página en Chrome, Safari o tu navegador principal.", "error", true);
+            return false;
+        }
+        return true;
+    },
+
     async downloadSchedule(format, scheduleContainerId) {
+        if (!this._handleBrowserSupport()) return;
+
         const selectedCourses = State.getSelectedCourses();
         if (selectedCourses.length === 0) {
             UI.showToast("No hay cursos seleccionados para exportar.", "error", true);
@@ -204,6 +219,8 @@ export const Export = {
     },
 
     downloadExcel() {
+        if (!this._handleBrowserSupport()) return;
+
         const selectedCourses = State.getSelectedCourses();
         if (selectedCourses.length === 0) {
             UI.showToast("No hay cursos seleccionados para exportar.", "error", true);
@@ -276,6 +293,8 @@ export const Export = {
     },
 
     downloadICS() {
+        if (!this._handleBrowserSupport()) return;
+
         const selectedCourses = State.getSelectedCourses();
         if (selectedCourses.length === 0) {
             UI.showToast("No hay cursos seleccionados para exportar.", "error", true);
