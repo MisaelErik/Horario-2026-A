@@ -16,16 +16,10 @@ Puedes acceder a la versión desplegada en vivo a través del siguiente enlace:
 - **Modo Oscuro**: Interfaz moderna y amigable a la vista que se adapta a tus preferencias (soporte completo para modo claro y oscuro).
 - **Adaptabilidad y Rapidez**: Diseño completamente responsivo (adaptable a móviles) y rápido al usar JavaScript modular y almacenamiento en el navegador, lo que te permite guardar sesiones para continuar planificando luego.
 
-## 💻 Ejecución Local (Para Desarrolladores)
-
-Si deseas clonar y probar el uso del proyecto a nivel de desarrollo, ten en cuenta que debido al uso de Módulos ES modernos (`import/export`), necesitas un servidor local (`http/s`) en vez del clásico protocolo de archivo local (`file://`).
-
-1. **Usando VS Code**: Instala la extensión _Live Server_, haz clic derecho en el `index.html` y luego en _"Open with Live Server"_.
-2. **Usando Python**: Abre una terminal en la raíz del proyecto y ejecuta `python -m http.server 8000`, finalmente entra a `http://localhost:8000`.
-
 ## 📌 Autor y Derechos Reservados
 
 **Creado por Misael Erik.**
 
 © 2026 Misael Erik. **Todos los derechos reservados.**
 El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
+
