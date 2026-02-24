@@ -1,36 +1,31 @@
-# Planificador de Horarios - FCA UNAC
+# Planificador de Horarios - FCA UNAC 2026-A
 
-Este proyecto ha sido refactorizado para utilizar una arquitectura modular moderna con **ES Modules** y un diseño visual mejorado.
+Bienvenido al repositorio oficial del **Planificador de Horarios**. Esta es una herramienta diseñada específicamente para los estudiantes de la Facultad de Ciencias Administrativas (FCA) de la Universidad Nacional del Callao (UNAC), permitiéndoles organizar de manera fácil y visual sus cursos y créditos para el ciclo académico 2026-A.
 
-## 🚀 Despliegue en GitHub Pages
+## 🔗 Enlace del Proyecto
 
-Este proyecto está *listo* para GitHub Pages. Sigue estos pasos:
+Puedes acceder a la versión desplegada en vivo a través del siguiente enlace:
 
-1.  Sube este código a tu repositorio de GitHub.
-2.  Ve a **Settings** (Configuración) > **Pages**.
-3.  En **Source**, selecciona `Deploy from a branch`.
-4.  Selecciona la rama `main` (o `master`) y la carpeta `/ (root)`.
-5.  Haz clic en **Save**.
+**👉 [Planificador de Horarios 2026-A](https://misaelerik.github.io/horario-2026-A/) 👈**
 
-En unos minutos, tu página estará disponible en `https://tu-usuario.github.io/tu-repositorio/`.
+## ✨ Características Principales
 
-## 💻 Ejecución Local
+- **Organización Visual**: Arrastra o selecciona tus cursos y genera tu horario de manera interactiva.
+- **Detección de Conflictos**: El sistema te avisará automáticamente si hay cruce de horarios entre dos o más materias.
+- **Exportación Flexible**: Descarga tu horario en formato de **Imagen (PNG)**, documento **PDF**, hoja de cálculo **Excel (XLSX)**, o expórtalo a tu **Calendario (.ics)**.
+- **Modo Oscuro**: Interfaz moderna y amigable a la vista que se adapta a tus preferencias (soporte completo para modo claro y oscuro).
+- **Adaptabilidad y Rapidez**: Diseño completamente responsivo (adaptable a móviles) y rápido al usar JavaScript modular y almacenamiento en el navegador, lo que te permite guardar sesiones para continuar planificando luego.
 
-**IMPORTANTE**: Debido al uso de Módulos ES (`import`/`export`), **no puedes** simplemente hacer doble clic en `index.html`. Necesitas un servidor local.
+## 💻 Ejecución Local (Para Desarrolladores)
 
-### Opción A: VS Code (Recomendado)
-1.  Instala la extensión **Live Server**.
-2.  Haz clic derecho en `index.html` y selecciona "Open with Live Server".
+Si deseas clonar y probar el uso del proyecto a nivel de desarrollo, ten en cuenta que debido al uso de Módulos ES modernos (`import/export`), necesitas un servidor local (`http/s`) en vez del clásico protocolo de archivo local (`file://`).
 
-### Opción B: Python
-Abre una terminal en la carpeta del proyecto y ejecuta:
-```bash
-python -m http.server
-```
-Luego abre `http://localhost:8000`.
+1. **Usando VS Code**: Instala la extensión _Live Server_, haz clic derecho en el `index.html` y luego en _"Open with Live Server"_.
+2. **Usando Python**: Abre una terminal en la raíz del proyecto y ejecuta `python -m http.server 8000`, finalmente entra a `http://localhost:8000`.
 
-## 🛠 Estructura
-- `/js/modules/`: Contiene la lógica dividida (`Schedule`, `UI`, `Storage`, `Export`).
-- `/js/main.js`: Punto de entrada que inicializa la app.
-- `/data/courses.js`: Datos de los cursos (formato Módulo).
-- `/css/style.css`: Estilos personalizados y utilidades para animaciones.
+## 📌 Autor y Derechos Reservados
+
+**Creado por Misael Erik.**
+
+© 2026 Misael Erik. **Todos los derechos reservados.**
+El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.

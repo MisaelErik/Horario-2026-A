@@ -1,3 +1,7 @@
+/*
+© 2026 Misael Erik. Todos los derechos reservados.
+El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
+*/
 
 
 
@@ -33,6 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
+    // Theme Change Re-render
+    window.addEventListener('theme-changed', () => {
+        updateUI();
+    });
+
     // Course Selection (Delegated)
     UI.elements.courseList.addEventListener('change', (e) => {
         if (e.target.matches('input[name^="course-"]')) {

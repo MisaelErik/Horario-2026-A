@@ -1,3 +1,7 @@
+<!--
+© 2026 Misael Erik. Todos los derechos reservados.
+El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
+-->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -307,6 +311,9 @@
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
             }
+
+            // Notificar a la aplicación (main.js) para que re-renderice usando el nuevo tema
+            window.dispatchEvent(new Event('theme-changed'));
         });
 
         // Check if file protocol (local open)

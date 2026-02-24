@@ -1,3 +1,7 @@
+/*
+© 2026 Misael Erik. Todos los derechos reservados.
+El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
+*/
 import { DOM } from './DOM.js';
 
 export const Modals = {
