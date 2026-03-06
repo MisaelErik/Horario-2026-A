@@ -3,35 +3,66 @@
 Creado por ErikMisael. El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
 */
 
-import { coursesData } from '../data/courses.js';
+import { coursesData as localCoursesData } from '../data/courses.js';
 import { Storage } from './modules/Storage.js';
 import { State } from './modules/State.js';
 import { TimeUtils } from './modules/TimeUtils.js';
 import { UI } from './modules/UI.js';
 import { Export } from './modules/Export.js';
+import { FirebaseSync } from './modules/Firebase.js';
+
+let activeCoursesData = localCoursesData;
 
 // Setup backwards compatibility during refactoring
 window.Schedule = State;
 window.TimeUtils = TimeUtils;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // 1. Init UI
     UI.init();
-    UI.populateCycleFilter(coursesData);
 
-    // 2. Load Saved Schedules
+    // 2. Initial Sync/Check Faculty
+    const savedFaculty = localStorage.getItem('selected-faculty') || 'FCA';
+    await syncFacultyData(savedFaculty);
+
+    // Initial Render (if not handled by sync)
+    UI.populateCycleFilter(activeCoursesData);
+    renderCourses();
+
+    // 3. Load Saved Schedules
     const savedSchedules = Storage.getSavedSchedules();
     UI.renderSavedSchedules(savedSchedules, {
         load: loadSchedule,
         delete: deleteSchedule
     });
 
-    // 3. Render Course List
-    renderCourses();
-
     // Event Listeners
     setupEventListeners();
 });
+
+async function syncFacultyData(facultyId) {
+    UI.showToast(`Sincronizando ${facultyId}...`, "info", true);
+
+    // Check cache first for faster startup
+    const cached = localStorage.getItem(`cache-courses-${facultyId}`);
+    if (cached) {
+        activeCoursesData = JSON.parse(cached);
+        UI.populateCycleFilter(activeCoursesData);
+        renderCourses();
+    }
+
+    // Sync from Firebase
+    const remoteData = await FirebaseSync.getFacultyData(facultyId);
+    if (remoteData) {
+        activeCoursesData = remoteData;
+        localStorage.setItem(`cache-courses-${facultyId}`, JSON.stringify(remoteData));
+        UI.populateCycleFilter(activeCoursesData);
+        renderCourses();
+        UI.showToast(`${facultyId} actualizado`, "success");
+    } else if (!cached && facultyId !== 'FCA') {
+        UI.showToast(`No se hallaron datos en la nube para ${facultyId}. Usando datos locales.`, "error", true);
+    }
+}
 
 function setupEventListeners() {
     // Theme Change Re-render
@@ -178,34 +209,55 @@ function setupEventListeners() {
         UI.showToast(`Horario ajustado: ${start}:00 a ${end}:00 ✂️`);
     });
 
-    // Faculty Selector
+    // Faculty Selector & Persistence
     const facultySelector = document.getElementById('faculty-selector');
+
+    // Crear iconos para el modal de facultades (especialmente si se inyectaron vía script)
+    if (window.lucide) window.lucide.createIcons();
+
     document.querySelectorAll('.faculty-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const faculty = btn.dataset.faculty;
-            if (faculty === 'FCA') {
+
+            // Animación de salida
+            facultySelector.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
                 facultySelector.classList.add('hidden');
+                facultySelector.classList.remove('opacity-0', 'scale-95');
+            }, 300);
+
+            if (faculty === 'FCA') {
+                activeCoursesData = localCoursesData;
                 UI.showToast("Bienvenido a Ciencias Administrativas", "success");
-                // Save selection in localStorage to avoid showing it every time if desired
                 localStorage.setItem('selected-faculty', 'FCA');
+                UI.populateCycleFilter(activeCoursesData);
+                renderCourses();
             } else {
-                UI.showToast("Esta facultad estará disponible próximamente 🚀", "info");
+                localStorage.setItem('selected-faculty', faculty);
+                await syncFacultyData(faculty);
             }
         });
     });
 
-    // Check if faculty already selected
+    // Cambiar Facultad desde el Footer
+    document.querySelector('[onclick*="faculty-selector"]')?.removeAttribute('onclick');
+    document.querySelector('button[class*="text-indigo-500"]')?.addEventListener('click', () => {
+        facultySelector.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+    });
+
+    // Verificar si ya existe preferencia
     if (localStorage.getItem('selected-faculty') === 'FCA') {
         facultySelector.classList.add('hidden');
     }
 }
 
 function renderCourses() {
-    UI.renderCourseList(coursesData, State.getSelectedCourses());
+    UI.renderCourseList(activeCoursesData, State.getSelectedCourses());
 }
 
 function handleCourseSelection(courseCode, sectionId) {
-    const course = coursesData.find(c => c.codigo === courseCode);
+    const course = activeCoursesData.find(c => c.codigo === courseCode);
     const section = course.secciones.find(s => s.id === sectionId);
 
     // Verifica no solo el curso, sino si esa sección en particular ya está seleccionada

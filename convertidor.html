@@ -14,6 +14,16 @@
 
     <!-- SheetJS para leer archivos Excel (.xls, .xlsx) y CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        #loginOverlay {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 
 <body class="min-h-screen bg-slate-50 p-6 font-sans text-slate-800">
@@ -23,6 +33,27 @@
         <div class="text-center space-y-2">
             <h1 class="text-3xl font-bold text-slate-900 font-serif italic">Conversor Pro</h1>
             <p class="text-slate-500">Transforma cronogramas de Callao (.XLS, .XLSX, .CSV) al formato de la App.</p>
+        </div>
+
+        <!-- Faculty Selection -->
+        <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-indigo-900 flex items-center gap-2">
+                <i data-lucide="building-2" class="w-5 h-5"></i> Selecciona la Facultad Destino
+            </h3>
+            <select id="facultySelect"
+                class="w-full p-3 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all font-medium text-slate-700">
+                <option value="FCA">Ciencias Administrativas (FCA)</option>
+                <option value="FCC">Ciencias Contables (FCC)</option>
+                <option value="FCE">Ciencias Económicas (FCE)</option>
+                <option value="FIIS">Ingeniería Industrial y de Sistemas (FIIS)</option>
+                <option value="FIEE">Ingeniería Eléctrica y Electrónica (FIEE)</option>
+                <option value="FIME">Ingeniería Mecánica y de Energía (FIME)</option>
+                <option value="FIPA">Ingeniería Pesquera y de Alimentos (FIPA)</option>
+                <option value="FIQ">Ingeniería Química (FIQ)</option>
+                <option value="FCNM">C. Naturales y Matemática (FCNM)</option>
+                <option value="FCS">Ciencias de la Salud (FCS)</option>
+                <option value="FIARN">Ambiente y Rec. Naturales (FIARN)</option>
+            </select>
         </div>
 
         <!-- Upload Area -->
@@ -82,8 +113,12 @@
                     </button>
                     <button id="downloadBtn"
                         class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-indigo-600 hover:bg-indigo-700 text-white">
-                        <i data-lucide="download" class="w-4 h-4"></i>
                         <span>Descargar</span>
+                    </button>
+                    <button id="uploadFirebaseBtn"
+                        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-emerald-200 shadow-transparent">
+                        <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+                        <span>Subir a Firebase</span>
                     </button>
                 </div>
             </div>
@@ -94,11 +129,90 @@
         </div>
     </div>
 
+    <!-- Login Overlay -->
+    <div id="loginOverlay"
+        class="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-2xl flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-[2.5rem] p-8 md:p-12 w-full max-w-md shadow-2xl border border-white/20 transform transition-all duration-500 scale-100 opacity-100">
+            <div class="text-center mb-10">
+                <div
+                    class="w-16 h-16 bg-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
+                    <i data-lucide="lock" class="w-8 h-8 text-indigo-600"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">Acceso Privado</h2>
+                <p class="text-slate-500 font-medium">Panel Administrativo de Horarios UNAC</p>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Usuario</label>
+                    <input type="text" id="username" required
+                        class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none text-slate-800 font-semibold"
+                        placeholder="misael">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Contraseña</label>
+                    <input type="password" id="password" required
+                        class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none text-slate-800 font-bold"
+                        placeholder="••••••••">
+                </div>
+
+                <div id="loginError" class="hidden text-center text-red-500 text-sm font-bold animate-pulse">
+                    ❌ Credenciales incorrectas
+                </div>
+
+                <button type="submit"
+                    class="w-full py-5 rounded-2xl bg-indigo-600 text-white font-black text-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-indigo-100">
+                    Entrar al Sistema
+                </button>
+            </form>
+
+            <p class="text-center mt-10 text-[10px] text-slate-400 font-bold uppercase tracking-widest">© 2026 Admin
+                Panel • ErikMisael</p>
+        </div>
+    </div>
+
     <script>
+        // --- 1. CONFIGURACIÓN FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjbC6qOJdLmjQM6F17NnIzQLu-E9_tVD8",
+            authDomain: "planificador-2026.firebaseapp.com",
+            projectId: "planificador-2026",
+            storageBucket: "planificador-2026.firebasestorage.app",
+            messagingSenderId: "319259910274",
+            appId: "1:319259910274:web:fcf792a845d0fe4726149b"
+        };
+
+        // Inicializar Firebase (Compat Mode)
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.firestore();
+        }
+
         // Inicializar íconos
         lucide.createIcons();
 
-        // DOM
+        // --- 2. GESTIÓN DE LOGIN ---
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if (user === 'misael' && pass === '12345') {
+                loginOverlay.classList.add('opacity-0', 'pointer-events-none', 'scale-110');
+                setTimeout(() => loginOverlay.remove(), 500);
+            } else {
+                loginError.classList.remove('hidden');
+                setTimeout(() => loginError.classList.add('hidden'), 3000);
+            }
+        });
+
+        // --- 3. LÓGICA DEL CONVERTIDOR ---
         const dropzone = document.getElementById('dropzone');
         const uploadIcon = document.getElementById('uploadIcon');
         const fileInput = document.getElementById('fileInput');
@@ -109,12 +223,15 @@
         const previewBody = document.getElementById('previewBody');
         const outputBox = document.getElementById('outputBox');
         const outputCode = document.getElementById('outputCode');
+        const facultySelect = document.getElementById('facultySelect');
         const copyBtn = document.getElementById('copyBtn');
         const copyIcon = document.getElementById('copyIcon');
         const copyText = document.getElementById('copyText');
         const downloadBtn = document.getElementById('downloadBtn');
+        const uploadFirebaseBtn = document.getElementById('uploadFirebaseBtn');
 
         let currentOutputData = '';
+        let currentJsonData = null;
 
         function showError(msg) {
             errorMessage.textContent = msg;
@@ -271,7 +388,7 @@
                 const finalArray = Object.values(coursesMap);
                 if (finalArray.length === 0) throw new Error("No se pudo extraer ningún curso válido.");
 
-                const finalJson = finalArray.map(c => ({
+                currentJsonData = finalArray.map(c => ({
                     ciclo: c.ciclo,
                     codigo: c.codigo,
                     nombre: c.nombre,
@@ -279,9 +396,9 @@
                     secciones: Object.values(c.seccionesMap).sort((a, b) => a.id.localeCompare(b.id))
                 }));
 
-                currentOutputData = `export const coursesData = ${JSON.stringify(finalJson, null, 4)};`;
+                currentOutputData = `export const coursesData = ${JSON.stringify(currentJsonData, null, 4)};`;
 
-                showPreview(finalJson);
+                showPreview(currentJsonData);
                 outputCode.textContent = currentOutputData;
                 outputBox.classList.remove('hidden');
                 hideError();
@@ -297,10 +414,10 @@
                 const firstSec = c.secciones[0]?.id || '-';
                 const row = `
                     <tr class="border-b border-slate-100 last:border-0">
-                        <td class="p-3">${c.ciclo}</td>
-                        <td class="p-3 font-mono text-xs text-indigo-600">${c.codigo}</td>
-                        <td class="p-3 font-medium">${c.nombre}</td>
-                        <td class="p-3">${firstSec}</td>
+                        <td class="p-3 font-bold text-slate-500">${c.ciclo}</td>
+                        <td class="p-3 font-mono text-xs text-indigo-600 font-bold">${c.codigo}</td>
+                        <td class="p-3 font-semibold">${c.nombre}</td>
+                        <td class="p-3"><span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black">${firstSec}</span></td>
                     </tr>
                 `;
                 previewBody.insertAdjacentHTML('beforeend', row);
@@ -334,9 +451,42 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'coursesData.js';
+            a.download = `coursesData_${facultySelect.value || 'FCA'}.js`;
             a.click();
             URL.revokeObjectURL(url);
+        });
+
+        uploadFirebaseBtn.addEventListener('click', async () => {
+            if (!currentJsonData) return alert("Primero sube y procesa un archivo.");
+
+            const faculty = facultySelect.value;
+            const facultyName = facultySelect.options[facultySelect.selectedIndex].text;
+
+            if (!confirm(`¿Estás seguro de subir los datos a Firebase para la facultad ${facultyName}?`)) return;
+
+            uploadFirebaseBtn.disabled = true;
+            uploadFirebaseBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo...`;
+            lucide.createIcons();
+
+            try {
+                if (typeof db === 'undefined' || !db) throw new Error("Firebase no está inicializado correctamente.");
+
+                await db.collection("faculties").doc(faculty).set({
+                    id: faculty,
+                    name: facultyName,
+                    courses: currentJsonData,
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert(`✅ Datos subidos correctamente a Firebase para ${faculty}!`);
+            } catch (error) {
+                console.error("Error al subir a Firebase:", error);
+                alert("❌ Error al subir a Firebase: " + error.message);
+            } finally {
+                uploadFirebaseBtn.disabled = false;
+                uploadFirebaseBtn.innerHTML = `<i data-lucide="cloud-upload" class="w-4 h-4"></i> Subir a Firebase`;
+                lucide.createIcons();
+            }
         });
     </script>
 </body>
