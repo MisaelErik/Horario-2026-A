@@ -18,7 +18,7 @@ export const State = {
                 if (existingClass.dia === newClass.dia) {
                     const existingRange = TimeUtils.parseTimeRange(existingClass.hora);
                     if (newRange.start < existingRange.end && newRange.end > existingRange.start) {
-                        return selected;
+                        return { selectedCourse: selected, conflictDetails: { day: existingClass.dia, time: existingClass.hora, courseName: selected.curso.nombre } };
                     }
                 }
             }

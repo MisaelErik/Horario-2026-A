@@ -23,12 +23,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     UI.init();
     facultySelector = document.getElementById('faculty-selector');
 
-    // 2. Initial Sync/Check Faculty
-    const savedFaculty = localStorage.getItem('selected-faculty');
-    if (savedFaculty) {
-        const syncResult = await syncFacultyData(savedFaculty);
-        if (syncResult && facultySelector) {
-            facultySelector.classList.add('hidden');
+    // 2. Initial Sync/Check Faculty OR Load Shared
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedId = urlParams.get('share');
+
+    let initialSyncComplete = false;
+
+    if (sharedId) {
+        UI.showToast("Cargando horario compartido...", "info", true);
+        const sharedData = await FirebaseSync.getSharedSchedule(sharedId);
+        if (sharedData && sharedData.data && sharedData.faculty) {
+            const syncResult = await syncFacultyData(sharedData.faculty);
+            if (syncResult) {
+                State.setSelectedCourses(sharedData.data);
+                updateUI();
+                renderCourses();
+                UI.showToast("¡Horario compartido cargado!", "success");
+
+                if (facultySelector) {
+                    facultySelector.classList.add('hidden');
+                }
+                initialSyncComplete = true;
+
+                // Send to GA
+                if (typeof window.gtag === 'function') {
+                    window.gtag('event', 'load_shared_schedule', {
+                        'faculty': sharedData.faculty,
+                        'share_id': sharedId
+                    });
+                }
+            }
+        } else {
+            UI.showToast("Enlace de horario inválido o expirado.", "error");
+        }
+    }
+
+    if (!initialSyncComplete) {
+        const savedFaculty = localStorage.getItem('selected-faculty');
+        if (savedFaculty) {
+            const syncResult = await syncFacultyData(savedFaculty);
+            if (syncResult && facultySelector) {
+                facultySelector.classList.add('hidden');
+            }
         }
     }
 
@@ -140,11 +176,60 @@ function setupEventListeners() {
 
             UI.renderSavedSchedules(Storage.getSavedSchedules(), { load: loadSchedule, delete: deleteSchedule });
             UI.showToast("Horario guardado correctamente");
+
+            // Send GA event
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', 'save_schedule', {
+                    'faculty': localStorage.getItem('selected-faculty') || 'FCA',
+                    'count_courses': schedule.length
+                });
+            }
         } catch (error) {
             console.error(error);
             alert("Error al guardar.");
         }
     });
+
+    // Share Schedule
+    const shareBtn = document.getElementById('share-schedule-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+            const schedule = Schedule.getSelectedCourses();
+            if (schedule.length === 0) return alert("Selecciona cursos para compartir.");
+
+            UI.showToast("Generando enlace...", "info", true);
+            shareBtn.disabled = true;
+            shareBtn.classList.add('opacity-50');
+
+            const currentFaculty = localStorage.getItem('selected-faculty') || 'FCA';
+            const shareId = await FirebaseSync.shareSchedule(schedule, currentFaculty);
+
+            if (shareId) {
+                const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareId}`;
+
+                // Track with GA
+                if (typeof window.gtag === 'function') {
+                    window.gtag('event', 'share', {
+                        'method': 'Link_Generated',
+                        'content_type': 'schedule',
+                        'faculty': currentFaculty
+                    });
+                }
+
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    UI.showToast("¡Enlace copiado al portapapeles!", "success");
+                } catch (err) {
+                    prompt("Copia este enlace para compartir tu horario:", shareUrl);
+                }
+            } else {
+                UI.showToast("Error al generar enlace.", "error");
+            }
+
+            shareBtn.disabled = false;
+            shareBtn.classList.remove('opacity-50');
+        });
+    }
 
     // Exports
     const exportBtnPdf = document.getElementById('download-pdf-btn');
@@ -241,6 +326,14 @@ function setupEventListeners() {
             // Step 2: ONLY close if success
             if (success) {
                 localStorage.setItem('selected-faculty', faculty);
+
+                // Track GA
+                if (typeof window.gtag === 'function') {
+                    window.gtag('event', 'select_content', {
+                        'content_type': 'faculty',
+                        'item_id': faculty
+                    });
+                }
 
                 // Animation and close
                 facultySelector.classList.add('opacity-0', 'scale-95');

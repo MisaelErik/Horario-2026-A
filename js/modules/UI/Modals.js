@@ -5,12 +5,12 @@ El uso, modificación, distribución o copia no autorizada de este código o est
 import { DOM } from './DOM.js';
 
 export const Modals = {
-    showConflictModal(message, onReplace, onCancel) {
+    showConflictModal(conflictInfo, onReplace, onCancel) {
         const conflictMessage = DOM.getElement('conflictMessage');
         const conflictModal = DOM.getElement('conflictModal');
         const modalContent = DOM.getElement('modalContent');
 
-        conflictMessage.textContent = message;
+        let msg = typeof conflictInfo === 'string' ? conflictInfo : El curso se cruza con  el d�a  de .; conflictMessage.textContent = msg;
         conflictModal.classList.remove('hidden');
         conflictModal.classList.add('flex');
 

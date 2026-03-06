@@ -38,5 +38,36 @@ export const FirebaseSync = {
             console.error("Error fetching from Firebase:", error);
         }
         return null;
+    },
+
+    async shareSchedule(scheduleData, facultyId) {
+        try {
+            const db = firebase.firestore();
+            const shareRef = await db.collection("shared_schedules").add({
+                data: scheduleData,
+                faculty: facultyId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return shareRef.id;
+        } catch (error) {
+            console.error("Error al compartir horario:", error);
+            return null;
+        }
+    },
+
+    async getSharedSchedule(shareId) {
+        try {
+            const db = firebase.firestore();
+            const doc = await db.collection("shared_schedules").doc(shareId).get();
+            if (doc.exists) {
+                return doc.data();
+            } else {
+                console.log("No se encontró el horario compartido!");
+                return null;
+            }
+        } catch (error) {
+            console.error("Error al obtener horario compartido:", error);
+            return null;
+        }
     }
 };
