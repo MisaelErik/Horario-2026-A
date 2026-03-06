@@ -16,10 +16,10 @@ Puedes acceder a la versión desplegada en vivo a través del siguiente enlace:
 - **Modo Oscuro**: Interfaz moderna y amigable a la vista que se adapta a tus preferencias (soporte completo para modo claro y oscuro).
 - **Adaptabilidad y Rapidez**: Diseño completamente responsivo (adaptable a móviles) y rápido al usar JavaScript modular y almacenamiento en el navegador, lo que te permite guardar sesiones para continuar planificando luego.
 
+
 ## 📌 Autor y Derechos Reservados
 
 **Creado por Misael Erik.**
 
 © 2026 Misael Erik. **Todos los derechos reservados.**
 El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
-

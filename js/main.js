@@ -1,13 +1,10 @@
 /*
-© 2026 Misael Erik. Todos los derechos reservados.
-El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
+© 2026 ErikMisael. Todos los derechos reservados.
+Creado por ErikMisael. El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
 */
-
-
 
 import { coursesData } from '../data/courses.js';
 import { Storage } from './modules/Storage.js';
-
 import { State } from './modules/State.js';
 import { TimeUtils } from './modules/TimeUtils.js';
 import { UI } from './modules/UI.js';
@@ -180,6 +177,27 @@ function setupEventListeners() {
         UI.renderScheduleEvents(selected);
         UI.showToast(`Horario ajustado: ${start}:00 a ${end}:00 ✂️`);
     });
+
+    // Faculty Selector
+    const facultySelector = document.getElementById('faculty-selector');
+    document.querySelectorAll('.faculty-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const faculty = btn.dataset.faculty;
+            if (faculty === 'FCA') {
+                facultySelector.classList.add('hidden');
+                UI.showToast("Bienvenido a Ciencias Administrativas", "success");
+                // Save selection in localStorage to avoid showing it every time if desired
+                localStorage.setItem('selected-faculty', 'FCA');
+            } else {
+                UI.showToast("Esta facultad estará disponible próximamente 🚀", "info");
+            }
+        });
+    });
+
+    // Check if faculty already selected
+    if (localStorage.getItem('selected-faculty') === 'FCA') {
+        facultySelector.classList.add('hidden');
+    }
 }
 
 function renderCourses() {

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Horarios a JS/JSON</title>
+
+    <!-- Tailwind CSS para los estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- SheetJS para leer archivos Excel (.xls, .xlsx) y CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body class="min-h-screen bg-slate-50 p-6 font-sans text-slate-800">
+    <div class="max-w-4xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl font-bold text-slate-900 font-serif italic">Conversor Pro</h1>
+            <p class="text-slate-500">Transforma cronogramas de Callao (.XLS, .XLSX, .CSV) al formato de la App.</p>
+        </div>
+
+        <!-- Upload Area -->
+        <div id="dropzone"
+            class="border-2 border-dashed border-indigo-300 rounded-xl bg-white p-10 text-center hover:bg-indigo-50 transition-all cursor-pointer flex flex-col items-center justify-center space-y-4">
+            <input type="file" id="fileInput" class="hidden" accept=".csv, .xls, .xlsx" />
+
+            <div id="uploadIcon" class="p-4 rounded-full bg-indigo-100 text-indigo-600 transition-transform">
+                <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="font-semibold text-lg text-slate-700">Arrastra o haz clic para subir</p>
+                <p id="fileNameDisplay" class="text-sm text-slate-500 mt-1">Soporta Excel (.XLS, .XLSX) y CSV</p>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorBox"
+            class="hidden bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg flex items-center space-x-3">
+            <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+            <p id="errorMessage" class="text-sm"></p>
+        </div>
+
+        <!-- Preview Area (New) -->
+        <div id="previewBox" class="hidden space-y-3">
+            <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                <i data-lucide="eye" class="w-4 h-4"></i> Previsualización (Primeros 5 cursos)
+            </h3>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="p-3 font-semibold text-slate-600">Ciclo</th>
+                            <th class="p-3 font-semibold text-slate-600">Código</th>
+                            <th class="p-3 font-semibold text-slate-600">Curso</th>
+                            <th class="p-3 font-semibold text-slate-600">Sección</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Output Area -->
+        <div id="outputBox"
+            class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+            <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-slate-700">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span class="font-medium text-sm">coursesData.js listo para pegar</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="copyBtn"
+                        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-white border border-slate-300 hover:bg-slate-50 text-slate-700">
+                        <i data-lucide="copy" class="w-4 h-4" id="copyIcon"></i>
+                        <span id="copyText">Copiar</span>
+                    </button>
+                    <button id="downloadBtn"
+                        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Descargar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-900 text-green-400 overflow-auto max-h-[500px] font-mono text-xs leading-relaxed">
+                <pre><code id="outputCode"></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar íconos
+        lucide.createIcons();
+
+        // DOM
+        const dropzone = document.getElementById('dropzone');
+        const uploadIcon = document.getElementById('uploadIcon');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+        const previewBox = document.getElementById('previewBox');
+        const previewBody = document.getElementById('previewBody');
+        const outputBox = document.getElementById('outputBox');
+        const outputCode = document.getElementById('outputCode');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyIcon = document.getElementById('copyIcon');
+        const copyText = document.getElementById('copyText');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let currentOutputData = '';
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorBox.classList.remove('hidden');
+            outputBox.classList.add('hidden');
+            previewBox.classList.add('hidden');
+            currentOutputData = '';
+        }
+
+        function hideError() {
+            errorBox.classList.add('hidden');
+        }
+
+        // Drag & Drop visual feedback
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('bg-indigo-50', 'border-indigo-500');
+                uploadIcon.classList.add('scale-110');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('bg-indigo-50', 'border-indigo-500');
+                uploadIcon.classList.remove('scale-110');
+            }, false);
+        });
+
+        // Drop handler
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            if (file) handleFile(file);
+        });
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (typeof XLSX === 'undefined') {
+                showError("El motor de Excel está cargando. Prueba de nuevo en unos segundos.");
+                return;
+            }
+
+            fileNameDisplay.textContent = `Analizando: ${file.name}`;
+            hideError();
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    processRows(rows);
+                } catch (err) {
+                    showError("Error al leer el archivo. Asegúrate que sea un Excel válido.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            fileInput.value = ''; // Reset para permitir subir el mismo archivo
+        }
+
+        function processRows(rows) {
+            try {
+                if (rows.length < 2) throw new Error("El archivo no contiene suficientes datos.");
+
+                const headers = (rows[0] || []).map(h => String(h || '').toUpperCase().trim());
+
+                const col = {
+                    ciclo: headers.findIndex(h => h.includes('CICLO')),
+                    curso: headers.findIndex(h => h.includes('CURSO')),
+                    docente: headers.findIndex(h => h.includes('DOCENTE')),
+                    seccion: headers.findIndex(h => h.includes('SECCI')),
+                    dia: headers.findIndex(h => h.includes('DIA') || h.includes('DÍA')),
+                    hora: headers.findIndex(h => h.includes('HORA')),
+                    aula: headers.findIndex(h => h.includes('AULA')),
+                    tipo: headers.findIndex(h => h.includes('TIPO'))
+                };
+
+                if (col.curso === -1 || col.seccion === -1 || col.dia === -1) {
+                    throw new Error("No se detectaron las columnas requeridas (Curso, Sección, Día).");
+                }
+
+                const coursesMap = {};
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row || row.length < 3) continue;
+
+                    const rawCurso = String(row[col.curso] || '').trim();
+                    const rawDocente = String(row[col.docente] || '').trim();
+                    const seccionId = String(row[col.seccion] || '').trim();
+
+                    if (!rawCurso || !seccionId) continue;
+
+                    // Limpieza avanzada
+                    let nombreCurso = rawCurso.replace(/^"|"$/g, '');
+                    let codigoCurso = "";
+                    const lastDashCurso = nombreCurso.lastIndexOf('-');
+                    if (lastDashCurso !== -1) {
+                        codigoCurso = nombreCurso.substring(lastDashCurso + 1).trim();
+                        nombreCurso = nombreCurso.substring(0, lastDashCurso).trim();
+                    }
+
+                    let nombreDocente = rawDocente.replace(/^"|"$/g, '');
+                    const lastDashDocente = nombreDocente.lastIndexOf('-');
+                    if (lastDashDocente !== -1) {
+                        nombreDocente = nombreDocente.substring(0, lastDashDocente).trim();
+                    }
+
+                    if (!codigoCurso) continue;
+
+                    if (!coursesMap[codigoCurso]) {
+                        coursesMap[codigoCurso] = {
+                            ciclo: String(row[col.ciclo] || '').trim(),
+                            codigo: codigoCurso,
+                            nombre: nombreCurso,
+                            creditos: 0,
+                            seccionesMap: {}
+                        };
+                    }
+
+                    if (!coursesMap[codigoCurso].seccionesMap[seccionId]) {
+                        coursesMap[codigoCurso].seccionesMap[seccionId] = {
+                            id: seccionId,
+                            docente: nombreDocente || "Docente por asignar",
+                            clases: []
+                        };
+                    }
+
+                    const dia = String(row[col.dia] || '').trim();
+                    const hora = String(row[col.hora] || '').trim();
+                    if (dia && hora) {
+                        const aula = String(row[col.aula] || '').trim();
+                        const tipo = String(row[col.tipo] || '').trim();
+
+                        // De-duplicación: No añadir si la clase ya existe
+                        const exists = coursesMap[codigoCurso].seccionesMap[seccionId].clases.some(c =>
+                            c.dia === dia && c.hora === hora && c.tipo === tipo
+                        );
+
+                        if (!exists) {
+                            coursesMap[codigoCurso].seccionesMap[seccionId].clases.push({ dia, hora, aula, tipo });
+                        }
+                    }
+                }
+
+                const finalArray = Object.values(coursesMap);
+                if (finalArray.length === 0) throw new Error("No se pudo extraer ningún curso válido.");
+
+                const finalJson = finalArray.map(c => ({
+                    ciclo: c.ciclo,
+                    codigo: c.codigo,
+                    nombre: c.nombre,
+                    creditos: c.creditos,
+                    secciones: Object.values(c.seccionesMap).sort((a, b) => a.id.localeCompare(b.id))
+                }));
+
+                currentOutputData = `export const coursesData = ${JSON.stringify(finalJson, null, 4)};`;
+
+                showPreview(finalJson);
+                outputCode.textContent = currentOutputData;
+                outputBox.classList.remove('hidden');
+                hideError();
+
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function showPreview(data) {
+            previewBody.innerHTML = '';
+            data.slice(0, 5).forEach(c => {
+                const firstSec = c.secciones[0]?.id || '-';
+                const row = `
+                    <tr class="border-b border-slate-100 last:border-0">
+                        <td class="p-3">${c.ciclo}</td>
+                        <td class="p-3 font-mono text-xs text-indigo-600">${c.codigo}</td>
+                        <td class="p-3 font-medium">${c.nombre}</td>
+                        <td class="p-3">${firstSec}</td>
+                    </tr>
+                `;
+                previewBody.insertAdjacentHTML('beforeend', row);
+            });
+            previewBox.classList.remove('hidden');
+        }
+
+        // Acciones
+        copyBtn.addEventListener('click', () => {
+            if (!currentOutputData) return;
+            const el = document.createElement('textarea');
+            el.value = currentOutputData;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            copyText.textContent = '¡Copiado!';
+            copyIcon.setAttribute('data-lucide', 'check');
+            lucide.createIcons();
+            setTimeout(() => {
+                copyText.textContent = 'Copiar';
+                copyIcon.setAttribute('data-lucide', 'copy');
+                lucide.createIcons();
+            }, 2000);
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!currentOutputData) return;
+            const blob = new Blob([currentOutputData], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'coursesData.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+
+</html>
