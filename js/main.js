@@ -12,6 +12,7 @@ import { Export } from './modules/Export.js';
 import { FirebaseSync } from './modules/Firebase.js';
 
 let activeCoursesData = localCoursesData;
+let facultySelector = null; // Declare it here for access across functions
 
 // Setup backwards compatibility during refactoring
 window.Schedule = State;
@@ -20,10 +21,15 @@ window.TimeUtils = TimeUtils;
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Init UI
     UI.init();
+    facultySelector = document.getElementById('faculty-selector');
 
     // 2. Initial Sync/Check Faculty
     const savedFaculty = localStorage.getItem('selected-faculty') || 'FCA';
-    await syncFacultyData(savedFaculty);
+    const syncResult = await syncFacultyData(savedFaculty);
+
+    if (syncResult && facultySelector) {
+        facultySelector.classList.add('hidden');
+    }
 
     // Initial Render (if not handled by sync)
     UI.populateCycleFilter(activeCoursesData);
@@ -41,9 +47,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function syncFacultyData(facultyId) {
+    if (facultyId === 'FCA') {
+        activeCoursesData = localCoursesData;
+        UI.populateCycleFilter(activeCoursesData);
+        renderCourses();
+        return true;
+    }
+
     UI.showToast(`Sincronizando ${facultyId}...`, "info", true);
 
-    // Check cache first for faster startup
+    // Check cache
     const cached = localStorage.getItem(`cache-courses-${facultyId}`);
     if (cached) {
         activeCoursesData = JSON.parse(cached);
@@ -59,8 +72,12 @@ async function syncFacultyData(facultyId) {
         UI.populateCycleFilter(activeCoursesData);
         renderCourses();
         UI.showToast(`${facultyId} actualizado`, "success");
-    } else if (!cached && facultyId !== 'FCA') {
-        UI.showToast(`No se hallaron datos en la nube para ${facultyId}. Usando datos locales.`, "error", true);
+        return true;
+    } else if (cached) {
+        return true; // We have cache at least
+    } else {
+        UI.showToast(`No hallamos horarios en la nube para ${facultyId} todavía.`, "error", true);
+        return false;
     }
 }
 
@@ -210,8 +227,6 @@ function setupEventListeners() {
     });
 
     // Faculty Selector & Persistence
-    const facultySelector = document.getElementById('faculty-selector');
-
     // Crear iconos para el modal de facultades (especialmente si se inyectaron vía script)
     if (window.lucide) window.lucide.createIcons();
 
@@ -219,22 +234,21 @@ function setupEventListeners() {
         btn.addEventListener('click', async () => {
             const faculty = btn.dataset.faculty;
 
-            // Animación de salida
-            facultySelector.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
-                facultySelector.classList.add('hidden');
-                facultySelector.classList.remove('opacity-0', 'scale-95');
-            }, 300);
+            // Step 1: Sync or Load
+            const success = await syncFacultyData(faculty);
 
-            if (faculty === 'FCA') {
-                activeCoursesData = localCoursesData;
-                UI.showToast("Bienvenido a Ciencias Administrativas", "success");
-                localStorage.setItem('selected-faculty', 'FCA');
-                UI.populateCycleFilter(activeCoursesData);
-                renderCourses();
-            } else {
+            // Step 2: ONLY close if success
+            if (success) {
                 localStorage.setItem('selected-faculty', faculty);
-                await syncFacultyData(faculty);
+
+                // Animation and close
+                facultySelector.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    facultySelector.classList.add('hidden');
+                    facultySelector.classList.remove('opacity-0', 'scale-95');
+                }, 300);
+
+                UI.showToast(`Bienvenido a ${faculty}`, "success");
             }
         });
     });
