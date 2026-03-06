@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (facultySelector) {
                     facultySelector.classList.add('hidden');
                 }
+                localStorage.setItem('selected-faculty', sharedData.faculty);
                 initialSyncComplete = true;
 
                 // Send to GA
@@ -52,9 +53,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         'share_id': sharedId
                     });
                 }
+            } else {
+                if (facultySelector && !localStorage.getItem('selected-faculty')) {
+                    facultySelector.classList.remove('hidden');
+                }
             }
         } else {
             UI.showToast("Enlace de horario inválido o expirado.", "error");
+            if (facultySelector && !localStorage.getItem('selected-faculty')) {
+                facultySelector.classList.remove('hidden');
+            }
         }
     }
 
@@ -113,7 +121,7 @@ async function syncFacultyData(facultyId) {
     } else if (cached) {
         return true; // We have cache at least
     } else {
-        UI.showToast(`Por el momento no está la programación horaria.`, "error", true);
+        window.location.href = `falta-horario.html?fac=${facultyId}`;
         return false;
     }
 }
@@ -121,6 +129,23 @@ async function syncFacultyData(facultyId) {
 function setupEventListeners() {
     // Theme Change Re-render
     window.addEventListener('theme-changed', () => {
+        updateUI();
+    });
+
+    // Color Palette Selector
+    const paletteSelector = document.getElementById('palette-selector');
+    if (paletteSelector) {
+        paletteSelector.value = State.activePalette;
+        paletteSelector.addEventListener('change', (e) => {
+            State.setPalette(e.target.value);
+            updateUI();
+            renderCourses();
+            UI.showToast("Paleta actualizada", "success");
+        });
+    }
+
+    // Schedule-updated global event (triggered by custom color picker)
+    window.addEventListener('schedule-updated', () => {
         updateUI();
     });
 
@@ -171,7 +196,8 @@ function setupEventListeners() {
                 id: Date.now(),
                 name,
                 courses: schedule,
-                thumbnail
+                thumbnail,
+                faculty: localStorage.getItem('selected-faculty') || 'FCA'
             });
 
             UI.renderSavedSchedules(Storage.getSavedSchedules(), { load: loadSchedule, delete: deleteSchedule });
@@ -319,12 +345,22 @@ function setupEventListeners() {
     document.querySelectorAll('.faculty-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const faculty = btn.dataset.faculty;
+            const prevFaculty = localStorage.getItem('selected-faculty');
+
+            if (State.getSelectedCourses().length > 0 && prevFaculty !== faculty) {
+                const confirmed = confirm("¡Advertencia! Si cambias de facultad perderás tu horario actual si no lo has guardado. ¿Deseas continuar?");
+                if (!confirmed) return;
+            }
 
             // Step 1: Sync or Load
             const success = await syncFacultyData(faculty);
 
             // Step 2: ONLY close if success
             if (success) {
+                if (prevFaculty !== faculty) {
+                    State.clearSchedule();
+                    updateUI();
+                }
                 localStorage.setItem('selected-faculty', faculty);
 
                 // Track GA
@@ -439,9 +475,24 @@ function updateUI() {
     UI.renderSelectedList(selectedFields, removeCourseCallback);
 }
 
-function loadSchedule(id) {
+async function loadSchedule(id) {
     const saved = Storage.getSavedSchedules().find(s => s.id === id);
     if (saved) {
+        const currentFaculty = localStorage.getItem('selected-faculty') || 'FCA';
+        const targetFaculty = saved.faculty || 'FCA'; // Retro-compatibility for older schedules
+
+        if (currentFaculty !== targetFaculty) {
+            const confirmed = confirm(`Este horario pertenece a otra facultad (${targetFaculty}). ¿Deseas cambiar de facultad para cargarlo?`);
+            if (!confirmed) return;
+
+            const success = await syncFacultyData(targetFaculty);
+            if (success) {
+                localStorage.setItem('selected-faculty', targetFaculty);
+            } else {
+                return; // Sync failed, don't load schedule
+            }
+        }
+
         State.setSelectedCourses(saved.courses);
         updateUI();
         renderCourses();
