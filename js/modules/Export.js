@@ -2,7 +2,7 @@
 © 2026 Misael Erik. Todos los derechos reservados.
 El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
 */
-import { State } from './State.js';
+import { State } from './State.js?v=11';
 import { TimeUtils } from './TimeUtils.js';
 import { UI } from './UI.js';
 
@@ -74,7 +74,7 @@ export const Export = {
                 Planificador de Horarios 2026-A
             </h1>
             <p style="font-size: 16px; font-weight: 600; color: ${theme.subtext}; margin-top: 5px;">
-                FACULTAD DE CIENCIAS ADMINISTRATIVAS - UNAC
+                ${(window.facultyNames ? window.facultyNames[localStorage.getItem('selected-faculty') || 'FCA'] : 'FACULTAD').toUpperCase()} - UNAC
             </p>
             ${studentName ? `<div style="margin-top: 15px; font-size: 20px; font-weight: 700; color: ${theme.accent}; background: ${theme.accentBg}; display: inline-block; padding: 5px 20px; border-radius: 99px;">Estudiante: ${studentName}</div>` : ''}
         `;
@@ -239,7 +239,9 @@ export const Export = {
 
         // Títulos
         data.push(['PLANIFICADOR DE HORARIOS 2026-A', '', '', '', '', '', '']);
-        data.push(['Facultad de Ciencias Administrativas - UNAC', '', '', '', '', '', '']);
+        const currentFacultyId = localStorage.getItem('selected-faculty') || 'FCA';
+        const facName = window.facultyNames ? window.facultyNames[currentFacultyId] : 'Facultad ' + currentFacultyId;
+        data.push([facName.toUpperCase() + ' - UNAC', '', '', '', '', '', '']);
         data.push(['']);
 
         // Encabezado (HORA a la IZQUIERDA)

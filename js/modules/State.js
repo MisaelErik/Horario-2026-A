@@ -6,9 +6,23 @@ import { TimeUtils } from './TimeUtils.js';
 
 export const State = {
     selectedCourses: [],
-    colorsLight: ['#d1fae5', '#e0f2fe', '#fef3c7', '#fee2e2', '#f3e8ff', '#ffedd5', '#ccfbf1', '#cffafe', '#fef08a', '#fce7f3'],
-    colorsDark: ['#065f46', '#075985', '#92400e', '#991b1b', '#6b21a8', '#9a3412', '#115e59', '#155e75', '#854d0e', '#831843'],
-    courseColorMap: {},
+    palettes: {
+        'default': {
+            light: ['#d1fae5', '#e0f2fe', '#fef3c7', '#fee2e2', '#f3e8ff', '#ffedd5', '#ccfbf1', '#cffafe', '#fef08a', '#fce7f3'],
+            dark: ['#065f46', '#075985', '#92400e', '#991b1b', '#6b21a8', '#9a3412', '#115e59', '#155e75', '#854d0e', '#831843']
+        },
+        'vibrant': {
+            light: ['#bef264', '#67e8f9', '#fde047', '#fca5a5', '#d8b4fe', '#fdba74', '#5eead4', '#7dd3fc', '#fef08a', '#fda4af'],
+            dark: ['#4d7c0f', '#0e7490', '#a16207', '#b91c1c', '#7e22ce', '#c2410c', '#0f766e', '#0369a1', '#854d0e', '#be123c']
+        },
+        'pastel': {
+            light: ['#bbf7d0', '#bae6fd', '#fef08a', '#fecaca', '#e9d5ff', '#fed7aa', '#99f6e4', '#a5f3fc', '#fde047', '#fbcfe8'],
+            dark: ['#166534', '#0369a1', '#854d0e', '#991b1b', '#6b21a8', '#9a3412', '#115e59', '#155e75', '#713f12', '#9d174d']
+        }
+    },
+    activePalette: localStorage.getItem('schedule-palette') || 'default',
+    customColors: JSON.parse(localStorage.getItem('custom-course-colors')) || {},
+    courseColorIndexMap: {},
     colorIndex: 0,
 
     getConflict(newClass) {
@@ -41,10 +55,8 @@ export const State = {
         }
 
         // Assign color and add
-        if (!this.courseColorMap[courseData.curso.codigo]) {
-            const isDarkMode = document.documentElement.classList.contains('dark');
-            const colors = isDarkMode ? this.colorsDark : this.colorsLight;
-            this.courseColorMap[courseData.curso.codigo] = colors[this.colorIndex % colors.length];
+        if (this.courseColorIndexMap[courseData.curso.codigo] === undefined) {
+            this.courseColorIndexMap[courseData.curso.codigo] = this.colorIndex;
             this.colorIndex++;
         }
 
@@ -64,14 +76,12 @@ export const State = {
     setSelectedCourses(courses) {
         this.selectedCourses = courses || [];
         // Re-map colors
-        this.courseColorMap = {};
+        this.courseColorIndexMap = {};
         this.colorIndex = 0;
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        const colors = isDarkMode ? this.colorsDark : this.colorsLight;
 
         this.selectedCourses.forEach(c => {
-            if (!this.courseColorMap[c.curso.codigo]) {
-                this.courseColorMap[c.curso.codigo] = colors[this.colorIndex % colors.length];
+            if (this.courseColorIndexMap[c.curso.codigo] === undefined) {
+                this.courseColorIndexMap[c.curso.codigo] = this.colorIndex;
                 this.colorIndex++;
             }
         });
@@ -80,22 +90,41 @@ export const State = {
 
     clearSchedule() {
         this.selectedCourses = [];
-        this.courseColorMap = {};
+        this.courseColorIndexMap = {};
         this.colorIndex = 0;
         window.dispatchEvent(new CustomEvent('schedule-updated'));
     },
 
     getColor(courseCode) {
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        const colors = isDarkMode ? this.colorsDark : this.colorsLight;
+        if (this.customColors[courseCode]) {
+            return this.customColors[courseCode];
+        }
 
-        if (!this.courseColorMap[courseCode]) {
-            this.courseColorMap[courseCode] = colors[this.colorIndex % colors.length];
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const palette = this.palettes[this.activePalette] || this.palettes['default'];
+        const colors = isDarkMode ? palette.dark : palette.light;
+
+        if (this.courseColorIndexMap[courseCode] === undefined) {
+            this.courseColorIndexMap[courseCode] = this.colorIndex;
             this.colorIndex++;
         }
 
-        const colorIndex = this.colorIndex - 1;
-        return colors[colorIndex % colors.length];
+        const index = this.courseColorIndexMap[courseCode];
+        return colors[index % colors.length];
+    },
+
+    setPalette(paletteName) {
+        if (this.palettes[paletteName]) {
+            this.activePalette = paletteName;
+            localStorage.setItem('schedule-palette', paletteName);
+            window.dispatchEvent(new CustomEvent('schedule-updated'));
+        }
+    },
+
+    setCustomColor(courseCode, hexColor) {
+        this.customColors[courseCode] = hexColor;
+        localStorage.setItem('custom-course-colors', JSON.stringify(this.customColors));
+        window.dispatchEvent(new CustomEvent('schedule-updated'));
     },
 
     darkenColor(color, amount) {

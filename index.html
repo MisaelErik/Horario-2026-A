@@ -60,7 +60,7 @@ Creado por ErikMisael. El uso, modificación, distribución o copia no autorizad
 
     <!-- Application Logic -->
     <!-- Se usa solo js/main.js que ya importa courses.js -->
-    <script type="module" src="js/main.js?v=8"></script>
+    <script type="module" src="js/main.js?v=11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -81,7 +81,7 @@ Creado por ErikMisael. El uso, modificación, distribución o copia no autorizad
 
         <!-- Prevent Flash Script -->
         <script>
-            if (localStorage.getItem('selected-faculty')) {
+            if (localStorage.getItem('selected-faculty') || window.location.search.includes('share=')) {
                 document.getElementById('faculty-selector').classList.add('hidden');
             }
         </script>
@@ -165,23 +165,31 @@ Creado por ErikMisael. El uso, modificación, distribución o copia no autorizad
                 <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 tracking-tight mb-1">
                     Planificador de Horarios 2026-A
                 </h1>
-                <p class="text-sm md:text-base text-slate-500 dark:text-slate-400">
+                <p id="faculty-subtitle" class="text-sm md:text-base text-slate-500 dark:text-slate-400">
                     Facultad de Ciencias Administrativas - UNAC
                 </p>
             </div>
-            <!-- Theme toggle pill -->
-            <button id="theme-toggle"
-                class="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium focus:outline-none"
-                aria-label="Alternar Modo Oscuro">
-                <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                        fill-rule="evenodd" clip-rule="evenodd"></path>
-                </svg>
-            </button>
+            <div class="flex items-center gap-3">
+                <select id="palette-selector"
+                    class="hidden sm:block px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm text-slate-600 dark:text-slate-300 focus:outline-none text-sm font-medium cursor-pointer transition-colors duration-200 hover:border-indigo-400 dark:hover:border-indigo-500">
+                    <option value="default">🌈 Tonos Suaves</option>
+                    <option value="vibrant">💥 Color Vibrante</option>
+                    <option value="pastel">🌸 Tonos Pastel</option>
+                </select>
+                <!-- Theme toggle pill -->
+                <button id="theme-toggle"
+                    class="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium focus:outline-none"
+                    aria-label="Alternar Modo Oscuro">
+                    <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                    <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                            fill-rule="evenodd" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
         </header>
 
         <div class="flex flex-col lg:flex-row gap-6">

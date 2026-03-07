@@ -3,7 +3,7 @@
 El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
 */
 import { DOM } from './DOM.js';
-import { State } from '../State.js';
+import { State } from '../State.js?v=11';
 
 export const SelectedList = {
     renderSelectedList(selectedCourses, removeCallback) {
@@ -19,7 +19,7 @@ export const SelectedList = {
                 const color = State.getColor(s.curso.codigo);
                 return `
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 group w-full md:w-auto flex-1 basis-80">
-                    <div class="w-3 h-10 rounded-full shrink-0" style="background-color: ${color}"></div>
+                    <div class="relative w-4 h-10 rounded-full shrink-0 overflow-hidden shadow-inner cursor-pointer" title="Cambiar color del curso"><input type="color" class="color-picker-input absolute -top-2 -left-2 w-16 h-16 cursor-pointer opacity-0" data-code="${s.curso.codigo}" value="${color}"><div class="w-full h-full pointer-events-none" style="background-color: ${color}"></div></div>
                     <div class="flex-grow min-w-0">
                         <p class="font-bold text-slate-800 dark:text-slate-200 text-sm truncate">${s.curso.nombre}</p>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Sección ${s.seccion.id} • ${s.curso.creditos} créditos</p>
@@ -36,6 +36,16 @@ export const SelectedList = {
             // Bind remove events
             selectedCoursesList.querySelectorAll('.remove-course-btn').forEach(btn => {
                 btn.addEventListener('click', () => removeCallback(btn.dataset.code));
+            });
+
+            // Bind color change events
+            selectedCoursesList.querySelectorAll('.color-picker-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    input.nextElementSibling.style.backgroundColor = e.target.value;
+                });
+                input.addEventListener('change', (e) => {
+                    State.setCustomColor(input.dataset.code, e.target.value);
+                });
             });
         }
 

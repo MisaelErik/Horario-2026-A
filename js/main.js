@@ -3,13 +3,13 @@
 Creado por ErikMisael. El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
 */
 
-import { coursesData as localCoursesData } from '../data/courses.js';
-import { Storage } from './modules/Storage.js';
-import { State } from './modules/State.js';
-import { TimeUtils } from './modules/TimeUtils.js';
-import { UI } from './modules/UI.js';
-import { Export } from './modules/Export.js';
-import { FirebaseSync } from './modules/Firebase.js';
+import { coursesData as localCoursesData } from '../data/courses.js?v=11';
+import { Storage } from './modules/Storage.js?v=11';
+import { State } from './modules/State.js?v=11';
+import { TimeUtils } from './modules/TimeUtils.js?v=11';
+import { UI } from './modules/UI.js?v=11';
+import { Export } from './modules/Export.js?v=11';
+import { FirebaseSync } from './modules/Firebase.js?v=11';
 
 let activeCoursesData = localCoursesData;
 let facultySelector = null; // Declare it here for access across functions
@@ -17,6 +17,27 @@ let facultySelector = null; // Declare it here for access across functions
 // Setup backwards compatibility during refactoring
 window.Schedule = State;
 window.TimeUtils = TimeUtils;
+window.facultyNames = {
+    'FCA': 'Facultad de Ciencias Administrativas',
+    'FCC': 'Facultad de Ciencias Contables',
+    'FIEE': 'Facultad de Ingeniería Eléctrica y Electrónica',
+    'FCE': 'Facultad de Ciencias Económicas',
+    'FIIS': 'Facultad de Ingeniería Industrial y de Sistemas',
+    'FIME': 'Facultad de Ingeniería Mecánica y de Energía',
+    'FIQ': 'Facultad de Ingeniería Química',
+    'FCS': 'Facultad de Ciencias de la Salud',
+    'FIARN': 'Facultad de Ingeniería Ambiental y de Recursos Naturales',
+    'FCNM': 'Facultad de Ciencias Naturales y Matemática',
+    'FIPA': 'Facultad de Ingeniería Pesquera y de Alimentos'
+};
+
+function updateSubtitle(facultyId) {
+    const subtitle = document.getElementById('faculty-subtitle');
+    if (subtitle) {
+        const name = window.facultyNames[facultyId] || ('Facultad ' + facultyId);
+        subtitle.textContent = `${name} - UNAC`;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Init UI
@@ -96,6 +117,7 @@ async function syncFacultyData(facultyId) {
         activeCoursesData = localCoursesData;
         UI.populateCycleFilter(activeCoursesData);
         renderCourses();
+        updateSubtitle('FCA');
         return true;
     }
 
@@ -116,6 +138,7 @@ async function syncFacultyData(facultyId) {
         localStorage.setItem(`cache-courses-${facultyId}`, JSON.stringify(remoteData));
         UI.populateCycleFilter(activeCoursesData);
         renderCourses();
+        updateSubtitle(facultyId);
         UI.showToast(`${facultyId} actualizado`, "success");
         return true;
     } else if (cached) {
