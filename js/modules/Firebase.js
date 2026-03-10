@@ -32,7 +32,7 @@ export const FirebaseSync = {
         try {
             const doc = await this.db.collection("faculties").doc(facultyId).get();
             if (doc.exists) {
-                return doc.data().courses;
+                return doc.data();
             }
         } catch (error) {
             console.error("Error fetching from Firebase:", error);

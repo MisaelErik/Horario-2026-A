@@ -18,17 +18,23 @@ let facultySelector = null; // Declare it here for access across functions
 window.Schedule = State;
 window.TimeUtils = TimeUtils;
 window.facultyNames = {
-    'FCA': 'Facultad de Ciencias Administrativas',
-    'FCC': 'Facultad de Ciencias Contables',
-    'FIEE': 'Facultad de Ingeniería Eléctrica y Electrónica',
-    'FCE': 'Facultad de Ciencias Económicas',
-    'FIIS': 'Facultad de Ingeniería Industrial y de Sistemas',
-    'FIME': 'Facultad de Ingeniería Mecánica y de Energía',
-    'FIQ': 'Facultad de Ingeniería Química',
-    'FCS': 'Facultad de Ciencias de la Salud',
-    'FIARN': 'Facultad de Ingeniería Ambiental y de Recursos Naturales',
-    'FCNM': 'Facultad de Ciencias Naturales y Matemática',
-    'FIPA': 'Facultad de Ingeniería Pesquera y de Alimentos'
+    'ADM': 'Administración',
+    'CON': 'Contabilidad',
+    'ECO': 'Economía',
+    'EDF': 'Educación Física',
+    'ENF': 'Enfermería',
+    'FIS': 'Física',
+    'IARN': 'Ing. Ambiental y de RR.NN.',
+    'IAL': 'Ingeniería de Alimentos',
+    'ISI': 'Ingeniería de Sistemas',
+    'IEL': 'Ingeniería Eléctrica',
+    'IEO': 'Ingeniería Electrónica',
+    'IEN': 'Ingeniería en Energía',
+    'IIN': 'Ingeniería Industrial',
+    'IME': 'Ingeniería Mecánica',
+    'IPE': 'Ingeniería Pesquera',
+    'IQU': 'Ingeniería Química',
+    'MAT': 'Matemática'
 };
 
 function updateSubtitle(facultyId) {
@@ -113,43 +119,299 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function syncFacultyData(facultyId) {
-    if (facultyId === 'FCA') {
+    if (facultyId === 'ADM' || facultyId === 'FCA') {
         activeCoursesData = localCoursesData;
         UI.populateCycleFilter(activeCoursesData);
         renderCourses();
-        updateSubtitle('FCA');
+        updateSubtitle(facultyId === 'FCA' ? 'ADM' : facultyId);
         return true;
     }
 
     UI.showToast(`Sincronizando ${facultyId}...`, "info", true);
 
-    // Check cache
-    const cached = localStorage.getItem(`cache-courses-${facultyId}`);
-    if (cached) {
-        activeCoursesData = JSON.parse(cached);
-        UI.populateCycleFilter(activeCoursesData);
-        renderCourses();
+    // 1. Get local data
+    const cachedStr = localStorage.getItem(`cache-courses-${facultyId}`);
+    let localCourses = null;
+    let localTime = 0;
+
+    if (cachedStr) {
+        try {
+            const cached = JSON.parse(cachedStr);
+            if (Array.isArray(cached)) {
+                localCourses = cached;
+            } else if (cached && cached.courses) {
+                localCourses = cached.courses;
+                localTime = cached.uploadedAt || 0;
+            }
+        } catch (e) {
+            console.error("Local storage formated incorrectly");
+        }
     }
 
-    // Sync from Firebase
-    const remoteData = await FirebaseSync.getFacultyData(facultyId);
-    if (remoteData) {
-        activeCoursesData = remoteData;
-        localStorage.setItem(`cache-courses-${facultyId}`, JSON.stringify(remoteData));
+    // 2. Get remote data
+    const remoteDoc = await FirebaseSync.getFacultyData(facultyId);
+    let remoteCourses = null;
+    let remoteTime = 0;
+
+    if (remoteDoc && remoteDoc.courses && remoteDoc.courses.length > 0) {
+        remoteCourses = remoteDoc.courses;
+        remoteTime = remoteDoc.lastUpdate ? (typeof remoteDoc.lastUpdate.toMillis === 'function' ? remoteDoc.lastUpdate.toMillis() : remoteDoc.lastUpdate.seconds * 1000) : 0;
+    }
+
+    let finalCourses = null;
+    let finalTime = 0;
+
+    // 3. Compare logic
+    if (remoteCourses && localCourses) {
+        if (remoteTime > localTime) {
+            // Remote is newer, prompt user
+            const useRemote = await new Promise(resolve => {
+                const modal = document.getElementById('update-prompt-modal');
+                modal.classList.remove('hidden');
+
+                document.getElementById('accept-update-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(true);
+                };
+                document.getElementById('reject-update-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(false);
+                };
+            });
+
+            if (useRemote) {
+                finalCourses = remoteCourses;
+                finalTime = remoteTime;
+                UI.showToast(`Actualizado desde oficial`, "success");
+            } else {
+                finalCourses = localCourses;
+                finalTime = localTime;
+            }
+        } else {
+            finalCourses = localCourses;
+            finalTime = localTime;
+        }
+    } else if (remoteCourses) {
+        finalCourses = remoteCourses;
+        finalTime = remoteTime;
+        UI.showToast(`${facultyId} sincronizado`, "success");
+    } else if (localCourses) {
+        finalCourses = localCourses;
+        finalTime = localTime;
+    }
+
+    // 4. Final step
+    if (finalCourses) {
+        activeCoursesData = finalCourses;
+        // Save back format
+        localStorage.setItem(`cache-courses-${facultyId}`, JSON.stringify({
+            courses: finalCourses,
+            uploadedAt: finalTime
+        }));
+
         UI.populateCycleFilter(activeCoursesData);
         renderCourses();
         updateSubtitle(facultyId);
-        UI.showToast(`${facultyId} actualizado`, "success");
         return true;
-    } else if (cached) {
-        return true; // We have cache at least
     } else {
-        window.location.href = `falta-horario.html?fac=${facultyId}`;
+        // Show upload custom modal because no data exists anywhere
+        document.getElementById('custom-upload-modal').classList.remove('hidden');
         return false;
     }
 }
 
 function setupEventListeners() {
+    // Custom Schedule Upload Logic
+    const customUploadBtn = document.getElementById('upload-custom-schedule-btn');
+    const customUploadModal = document.getElementById('custom-upload-modal');
+    const closeUploadModalBtn = document.getElementById('close-upload-modal-btn');
+    const customFileInput = document.getElementById('custom-file-input');
+    const customDropzone = document.getElementById('custom-dropzone');
+    const customErrorBox = document.getElementById('custom-error-box');
+    const customErrorMessage = document.getElementById('custom-error-message');
+    const customFileNameDisplay = document.getElementById('custom-file-name-display');
+
+    if (customUploadBtn) {
+        customUploadBtn.addEventListener('click', () => {
+            if (customUploadModal) customUploadModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeUploadModalBtn) {
+        closeUploadModalBtn.addEventListener('click', () => {
+            if (customUploadModal) customUploadModal.classList.add('hidden');
+        });
+    }
+
+    if (customDropzone && customFileInput) {
+        customDropzone.addEventListener('click', () => customFileInput.click());
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            customDropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                customDropzone.classList.add('bg-indigo-50', 'dark:bg-indigo-900/30');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            customDropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                customDropzone.classList.remove('bg-indigo-50', 'dark:bg-indigo-900/30');
+            }, false);
+        });
+
+        customDropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            if (file) handleCustomFileWrapper(file);
+        });
+
+        customFileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) handleCustomFileWrapper(e.target.files[0]);
+        });
+    }
+
+    function showCustomError(msg) {
+        if (customErrorMessage) customErrorMessage.textContent = msg;
+        if (customErrorBox) customErrorBox.classList.remove('hidden');
+    }
+
+    function handleCustomFileWrapper(file) {
+        if (typeof XLSX === 'undefined') {
+            showCustomError("El procesador XLSX está cargando. Inténtalo de nuevo.");
+            return;
+        }
+
+        if (customErrorBox) customErrorBox.classList.add('hidden');
+        if (customFileNameDisplay) customFileNameDisplay.textContent = `Procesando: ${file.name}`;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                const processedCourses = processScheduleRowsManual(rows);
+
+                const currentFaculty = localStorage.getItem('selected-faculty') || 'ADM';
+
+                localStorage.setItem(`cache-courses-${currentFaculty}`, JSON.stringify({
+                    courses: processedCourses,
+                    uploadedAt: Date.now()
+                }));
+
+                activeCoursesData = processedCourses;
+                UI.populateCycleFilter(activeCoursesData);
+                renderCourses();
+                updateSubtitle(currentFaculty);
+
+                if (customUploadModal) customUploadModal.classList.add('hidden');
+                UI.showToast("Horario personalizado cargado con éxito", "success", true);
+
+            } catch (err) {
+                showCustomError(err.message || "Error al procesar el archivo. Asegúrate que sea un Excel válido.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        customFileInput.value = '';
+    }
+
+    function processScheduleRowsManual(rows) {
+        if (rows.length < 2) throw new Error("El archivo no contiene suficientes datos.");
+
+        const headers = (rows[0] || []).map(h => String(h || '').toUpperCase().trim());
+
+        const col = {
+            ciclo: headers.findIndex(h => h.includes('CICLO')),
+            curso: headers.findIndex(h => h.includes('CURSO')),
+            docente: headers.findIndex(h => h.includes('DOCENTE')),
+            seccion: headers.findIndex(h => h.includes('SECCI')),
+            dia: headers.findIndex(h => h.includes('DIA') || h.includes('DÍA')),
+            hora: headers.findIndex(h => h.includes('HORA')),
+            aula: headers.findIndex(h => h.includes('AULA')),
+            tipo: headers.findIndex(h => h.includes('TIPO'))
+        };
+
+        if (col.curso === -1 || col.seccion === -1 || col.dia === -1) {
+            throw new Error("No se detectaron las columnas requeridas (Curso, Sección, Día).");
+        }
+
+        const coursesMap = {};
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length < 3) continue;
+
+            const rawCurso = String(row[col.curso] || '').trim();
+            const rawDocente = String(row[col.docente] || '').trim();
+            const seccionId = String(row[col.seccion] || '').trim();
+
+            if (!rawCurso || !seccionId) continue;
+
+            let nombreCurso = rawCurso.replace(/^"|"$/g, '');
+            let codigoCurso = "";
+            const lastDashCurso = nombreCurso.lastIndexOf('-');
+            if (lastDashCurso !== -1) {
+                codigoCurso = nombreCurso.substring(lastDashCurso + 1).trim();
+                nombreCurso = nombreCurso.substring(0, lastDashCurso).trim();
+            }
+
+            let nombreDocente = rawDocente.replace(/^"|"$/g, '');
+            const lastDashDocente = nombreDocente.lastIndexOf('-');
+            if (lastDashDocente !== -1) {
+                nombreDocente = nombreDocente.substring(0, lastDashDocente).trim();
+            }
+
+            if (!codigoCurso) continue;
+
+            if (!coursesMap[codigoCurso]) {
+                coursesMap[codigoCurso] = {
+                    ciclo: String(row[col.ciclo] || '').trim(),
+                    codigo: codigoCurso,
+                    nombre: nombreCurso,
+                    creditos: 0,
+                    seccionesMap: {}
+                };
+            }
+
+            if (!coursesMap[codigoCurso].seccionesMap[seccionId]) {
+                coursesMap[codigoCurso].seccionesMap[seccionId] = {
+                    id: seccionId,
+                    docente: nombreDocente || "Docente por asignar",
+                    clases: []
+                };
+            }
+
+            const dia = String(row[col.dia] || '').trim();
+            const hora = String(row[col.hora] || '').trim();
+            if (dia && hora) {
+                const aula = String(row[col.aula] || '').trim();
+                const tipo = String(row[col.tipo] || '').trim();
+
+                const exists = coursesMap[codigoCurso].seccionesMap[seccionId].clases.some(c =>
+                    c.dia === dia && c.hora === hora && c.tipo === tipo
+                );
+
+                if (!exists) {
+                    coursesMap[codigoCurso].seccionesMap[seccionId].clases.push({ dia, hora, aula, tipo });
+                }
+            }
+        }
+
+        const finalArray = Object.values(coursesMap);
+        if (finalArray.length === 0) throw new Error("No se pudo extraer ningún curso válido.");
+
+        return finalArray.map(c => ({
+            ciclo: c.ciclo,
+            codigo: c.codigo,
+            nombre: c.nombre,
+            creditos: c.creditos,
+            secciones: Object.values(c.seccionesMap).sort((a, b) => a.id.localeCompare(b.id))
+        }));
+    }
+
     // Theme Change Re-render
     window.addEventListener('theme-changed', () => {
         updateUI();
@@ -220,7 +482,7 @@ function setupEventListeners() {
                 name,
                 courses: schedule,
                 thumbnail,
-                faculty: localStorage.getItem('selected-faculty') || 'FCA'
+                faculty: localStorage.getItem('selected-faculty') || 'ADM'
             });
 
             UI.renderSavedSchedules(Storage.getSavedSchedules(), { load: loadSchedule, delete: deleteSchedule });
@@ -229,7 +491,7 @@ function setupEventListeners() {
             // Send GA event
             if (typeof window.gtag === 'function') {
                 window.gtag('event', 'save_schedule', {
-                    'faculty': localStorage.getItem('selected-faculty') || 'FCA',
+                    'faculty': localStorage.getItem('selected-faculty') || 'ADM',
                     'count_courses': schedule.length
                 });
             }
@@ -416,7 +678,7 @@ function setupEventListeners() {
     }
 
     // Verificar si ya existe preferencia
-    if (localStorage.getItem('selected-faculty') === 'FCA') {
+    if (localStorage.getItem('selected-faculty') === 'ADM' || localStorage.getItem('selected-faculty') === 'FCA') {
         facultySelector.classList.add('hidden');
     }
 }
@@ -501,11 +763,12 @@ function updateUI() {
 async function loadSchedule(id) {
     const saved = Storage.getSavedSchedules().find(s => s.id === id);
     if (saved) {
-        const currentFaculty = localStorage.getItem('selected-faculty') || 'FCA';
-        const targetFaculty = saved.faculty || 'FCA'; // Retro-compatibility for older schedules
+        const currentFaculty = localStorage.getItem('selected-faculty') || 'ADM';
+        let targetFaculty = saved.faculty || 'ADM'; // Retro-compatibility for older schedules
+        if (targetFaculty === 'FCA') targetFaculty = 'ADM';
 
         if (currentFaculty !== targetFaculty) {
-            const confirmed = confirm(`Este horario pertenece a otra facultad (${targetFaculty}). ¿Deseas cambiar de facultad para cargarlo?`);
+            const confirmed = confirm(`Este horario pertenece a otra carrera (${targetFaculty}). ¿Deseas cambiar de carrera para cargarlo?`);
             if (!confirmed) return;
 
             const success = await syncFacultyData(targetFaculty);
