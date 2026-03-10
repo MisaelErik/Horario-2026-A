@@ -215,7 +215,14 @@ async function syncFacultyData(facultyId) {
         return true;
     } else {
         // Show upload custom modal because no data exists anywhere
-        document.getElementById('custom-upload-modal').classList.remove('hidden');
+        const modal = document.getElementById('custom-upload-modal');
+        const title = document.getElementById('upload-modal-title');
+        const desc = document.getElementById('upload-modal-desc');
+
+        if (title) title.textContent = "¡Horario no encontrado!";
+        if (desc) desc.textContent = "Parece que esta carrera aún no tiene base de datos. Sigue los pasos de arriba para obtener tu horario y subirlo aquí.";
+
+        modal.classList.remove('hidden');
         return false;
     }
 }
@@ -233,6 +240,10 @@ function setupEventListeners() {
 
     if (customUploadBtn) {
         customUploadBtn.addEventListener('click', () => {
+            const title = document.getElementById('upload-modal-title');
+            const desc = document.getElementById('upload-modal-desc');
+            if (title) title.textContent = "Actualizar Horario";
+            if (desc) desc.textContent = "Sube un nuevo archivo oficial para actualizar o reemplazar tu horario actual.";
             if (customUploadModal) customUploadModal.classList.remove('hidden');
         });
     }
