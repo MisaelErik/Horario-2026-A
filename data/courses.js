@@ -1,7 +1,3 @@
-/*
-© 2026 ErikMisael. Todos los derechos reservados.
-Creado por ErikMisael. El uso, modificación, distribución o copia no autorizada de este código o esta herramienta se encuentra terminantemente prohibido sin el previo y explícito consentimiento del autor original.
-*/
 export const coursesData = [
     {
         "ciclo": "I",
@@ -65,7 +61,7 @@ export const coursesData = [
             },
             {
                 "id": "06A",
-                "docente": "FARFAN FLORES MOISES OSWALDO",
+                "docente": "ALDANA TREJO FLORCITA HERMOJA",
                 "clases": [
                     {
                         "dia": "Mar",
@@ -145,7 +141,7 @@ export const coursesData = [
             },
             {
                 "id": "06A",
-                "docente": "RAMIREZ SOBALVARRO YASMINA",
+                "docente": "ESPINOZA CARRASCO VERONICA ELSA",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -171,7 +167,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -189,7 +185,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "ALDANA TREJO FLORCITA HERMOJA",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -349,7 +345,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "CALVAY CASTILLO JOSE ORLANDO",
+                "docente": "ALIAGA VALDEZ CARLOS RICARDO ANTONIO",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -367,7 +363,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "CALVAY CASTILLO JOSE ORLANDO",
+                "docente": "CASTILLO PRADO JORGE ALFREDO",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -774,7 +770,7 @@ export const coursesData = [
             },
             {
                 "id": "11A",
-                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -1052,7 +1048,7 @@ export const coursesData = [
             },
             {
                 "id": "11A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CALVAY CASTILLO JOSE ORLANDO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -1706,7 +1702,7 @@ export const coursesData = [
             },
             {
                 "id": "06A",
-                "docente": "GIRALDO RIOS KARINA JULIETA",
+                "docente": "CASTILLO PRADO JORGE ALFREDO",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -1892,7 +1888,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "ALEJOS IPANAQUE RUFINO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -2034,7 +2030,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "REYES DORIA JOSE LUIS",
+                "docente": "ALEJOS IPANAQUE RUFINO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -2150,7 +2146,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "ESPINOZA CARRASCO VERONICA ELSA",
+                "docente": "ALIAGA VALDEZ CARLOS RICARDO ANTONIO",
                 "clases": [
                     {
                         "dia": "Mar",
@@ -2414,7 +2410,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "ASIÁN QUIÑONES CARLOS ALBERTO",
+                "docente": "CALDERON MOQUILLAZA LUIS ALBERTO",
                 "clases": [
                     {
                         "dia": "Mar",
@@ -2538,7 +2534,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CORREA SILVA EDWARD GERARDO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -2556,7 +2552,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CORREA SILVA EDWARD GERARDO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -2674,7 +2670,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "RAMIREZ SOBALVARRO YASMINA",
+                "docente": "ESPINOZA CARRASCO VERONICA ELSA",
                 "clases": [
                     {
                         "dia": "Mar",
@@ -2984,7 +2980,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -3002,7 +2998,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -3020,7 +3016,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -3064,7 +3060,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "GIRALDO RIOS KARINA JULIETA",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -3294,7 +3290,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CONSTANTINO COLACCI JUAN ANTONIO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -3330,7 +3326,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "GIRALDO RIOS KARINA JULIETA",
+                "docente": "CONSTANTINO COLACCI JUAN ANTONIO",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -3418,7 +3414,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "ALEJOS IPANAQUE RUFINO",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Vie",
@@ -3436,7 +3432,7 @@ export const coursesData = [
             },
             {
                 "id": "02A",
-                "docente": "ALEJOS IPANAQUE RUFINO",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Mar",
@@ -3504,7 +3500,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "CORREA SILVA EDWARD GERARDO",
+                "docente": "FARFAN FLORES MOISES OSWALDO",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -3610,7 +3606,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "ALDANA TREJO FLORCITA HERMOJA",
+                "docente": "GIRALDO RIOS KARINA JULIETA",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -3628,7 +3624,7 @@ export const coursesData = [
             },
             {
                 "id": "05A",
-                "docente": "GIRALDO RIOS KARINA JULIETA",
+                "docente": "ALDANA TREJO FLORCITA HERMOJA",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -3646,7 +3642,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "GIRALDO RIOS KARINA JULIETA",
+                "docente": "HUARCAYA GODOY MADISON",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -3740,7 +3736,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "01A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CONSTANTINO COLACCI JUAN ANTONIO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -3916,7 +3912,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "05A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "ANGULO POMIANO WILLIAM PETER",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -3934,7 +3930,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "MORENO SAN MARTIN JUAN HECTOR",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -3978,7 +3974,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "05A",
-                "docente": "ALIAGA VALDEZ CARLOS RICARDO ANTONIO",
+                "docente": "CALVAY CASTILLO JOSE ORLANDO",
                 "clases": [
                     {
                         "dia": "Vie",
@@ -3996,7 +3992,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CALVAY CASTILLO JOSE ORLANDO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -4014,7 +4010,7 @@ export const coursesData = [
             },
             {
                 "id": "11A",
-                "docente": "MAGUIÑA MENDOZA MARIO ARTURO",
+                "docente": "POR DESIGNAR PROFESOR",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -4058,7 +4054,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "SUAREZ BAZALAR RAUL",
+                "docente": "MORENO SAN MARTIN JUAN HECTOR",
                 "clases": [
                     {
                         "dia": "Jue",
@@ -4102,7 +4098,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "05A",
-                "docente": "CALDERON MOQUILLAZA LUIS ALBERTO",
+                "docente": "FARFAN FLORES MOISES OSWALDO",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -4164,7 +4160,7 @@ export const coursesData = [
         "secciones": [
             {
                 "id": "05A",
-                "docente": "POR DESIGNAR PROFESOR",
+                "docente": "CONSTANTINO COLACCI JUAN ANTONIO",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -4182,7 +4178,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "CASTILLO PRADO JORGE ALFREDO",
+                "docente": "GIRALDO RIOS KARINA JULIETA",
                 "clases": [
                     {
                         "dia": "Lun",
@@ -4200,7 +4196,7 @@ export const coursesData = [
             },
             {
                 "id": "11A",
-                "docente": "CASTILLO PRADO JORGE ALFREDO",
+                "docente": "GIRALDO RIOS KARINA JULIETA",
                 "clases": [
                     {
                         "dia": "Mié",
@@ -4244,7 +4240,7 @@ export const coursesData = [
             },
             {
                 "id": "10A",
-                "docente": "ALDANA TREJO FLORCITA HERMOJA",
+                "docente": "SUAREZ BAZALAR RAUL",
                 "clases": [
                     {
                         "dia": "Vie",
@@ -4262,7 +4258,7 @@ export const coursesData = [
             },
             {
                 "id": "11A",
-                "docente": "ALIAGA VALDEZ CARLOS RICARDO ANTONIO",
+                "docente": "ASIÁN QUIÑONES CARLOS ALBERTO",
                 "clases": [
                     {
                         "dia": "Lun",
